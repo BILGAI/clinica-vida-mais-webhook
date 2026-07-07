@@ -34,11 +34,14 @@ app.post('/webhook', async (req, res) => {
 
     const queryText = req.body.queryResult?.queryText || '';
     const intentName = req.body.queryResult?.intent?.displayName || '';
+    const action = req.body.queryResult?.action || '';
 
-    console.log('queryText:', queryText, '| intentName:', intentName);
+    console.log('queryText:', queryText, '| intentName:', intentName, '| action:', action);
 
-    // Só usa IA generativa no Fallback (quando o Dialogflow não entendeu bem)
-    if (intentName !== 'Default Fallback Intent') {
+    // Detecta o Fallback de forma robusta: tanto pelo nome padrão quanto pela action "input.unknown"
+    const isFallback = action === 'input.unknown' || intentName === 'Default Fallback Intent';
+
+    if (!isFallback) {
       console.log('Não é Fallback, respondendo OK sem chamar a IA.');
       return res.json({ fulfillmentText: 'OK' });
     }
